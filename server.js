@@ -1,8 +1,8 @@
 #!/bin/env node
-//  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
-
+var mysql   = require('mysql');
+var cors    = require('cors');
 
 /**
  *  Define the sample application.
@@ -33,7 +33,6 @@ var SampleApp = function() {
         };
     };
 
-
     /**
      *  Populate the cache.
      */
@@ -46,13 +45,11 @@ var SampleApp = function() {
         self.zcache['index.html'] = fs.readFileSync('./index.html');
     };
 
-
     /**
      *  Retrieve entry (content) from cache.
      *  @param {string} key  Key identifying content to retrieve from cache.
      */
     self.cache_get = function(key) { return self.zcache[key]; };
-
 
     /**
      *  terminator === the termination handler
@@ -67,7 +64,6 @@ var SampleApp = function() {
         }
         console.log('%s: Node server stopped.', Date(Date.now()) );
     };
-
 
     /**
      *  Setup termination handlers (for exit and a list of signals).
@@ -84,7 +80,6 @@ var SampleApp = function() {
         });
     };
 
-
     /*  ================================================================  */
     /*  App server functions (main app logic here).                       */
     /*  ================================================================  */
@@ -95,17 +90,20 @@ var SampleApp = function() {
     self.createRoutes = function() {
         self.routes = { };
 
-        self.routes['/asciimo'] = function(req, res) {
-            var link = "http://i.imgur.com/kmbjB.png";
-            res.send("<html><body><img src='" + link + "'></body></html>");
-        };
+        // self.routes['/asciimo'] = function(req, res) {
+        //     var link = "http://i.imgur.com/kmbjB.png";
+        //     res.send("<html><body><img src='" + link + "'></body></html>");
+        // };
 
-        self.routes['/'] = function(req, res) {
-            res.setHeader('Content-Type', 'text/html');
-            res.send(self.cache_get('index.html') );
-        };
+        // self.routes['/'] = function(req, res) {
+        //     res.setHeader('Content-Type', 'text/html');
+        //     res.send(self.cache_get('index.html') );
+        // };
+
+        // self.routes['/vote/'] = function(req, res) {
+        //     res.send("POST only!");
+        // };
     };
-
 
     /**
      *  Initialize the server (express) and create the routes and register
@@ -113,14 +111,60 @@ var SampleApp = function() {
      */
     self.initializeServer = function() {
         self.createRoutes();
-        self.app = express.createServer();
+        self.app = express();
+
+        self.app.use(express.bodyParser());
+
+        self.app.use(cors());
+        self.app.options('*', cors());
 
         //  Add handlers for the app (from the routes).
-        for (var r in self.routes) {
-            self.app.get(r, self.routes[r]);
-        }
-    };
+        // for (var r in self.routes) {
+        //     self.app.get(r, self.routes[r]);
+        // }
 
+        self.app.post('/vote/', cors(), function (req, res, next) {
+            // do the upsert here
+            try {
+                console.log("In /vote/");
+                console.log(req.body);
+
+                var voter = req.body.voter,
+                familiar = req.body.familiar,
+                score = req.body.score;
+
+                if (!voter || !familiar || !score) {
+                    res.json('{"result": "error", "reason": "Invalid parameters"}');
+                    return;
+                }
+
+                console.log("Before connect");
+                var connection = mysql.createConnection({
+                    host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
+                    user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+                    password : process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+                    port     : process.env.OPENSHIFT_MYSQL_DB_PORT,
+                    database : 'bloodbrothers'
+                });
+
+                connection.connect();
+
+                console.log("Before query");
+                var query = "INSERT INTO votes(voter, score, familiar) values(?, ?, ?) " +
+                        "ON DUPLICATE KEY UPDATE voter = VALUES(voter), score = VALUES(score), familiar = VALUES(familiar)";
+                connection.query(query, [voter, score, familiar], function(err, rows, fields) {
+                    if (err) throw err;
+                    res.json('{"result": "success"}');
+                });
+
+                connection.end();
+            }
+            catch (err) {
+                res.json('{"result": "error"}');
+                throw err;
+            }
+        });
+    };
 
     /**
      *  Initializes the sample application.
@@ -133,7 +177,6 @@ var SampleApp = function() {
         // Create the express server and routes.
         self.initializeServer();
     };
-
 
     /**
      *  Start the server (starts up the sample application).
@@ -148,12 +191,9 @@ var SampleApp = function() {
 
 };   /*  Sample Application.  */
 
-
-
 /**
  *  main():  Main code.
  */
 var zapp = new SampleApp();
 zapp.initialize();
 zapp.start();
-
