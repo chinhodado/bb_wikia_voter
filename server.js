@@ -129,6 +129,11 @@ var SampleApp = function() {
                 console.log("In /vote/");
                 console.log(req.body);
 
+                if (!req.body) {
+                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    return;
+                }
+
                 var voter = req.body.voter,
                 familiar = req.body.familiar,
                 score = req.body.score;
@@ -156,6 +161,66 @@ var SampleApp = function() {
                     if (err) throw err;
                     res.json('{"result": "success"}');
                 });
+
+                connection.end();
+            }
+            catch (err) {
+                res.json('{"result": "error"}');
+                throw err;
+            }
+        });
+
+        self.app.post('/vote/multiple/', cors(), function (req, res, next) {
+            // do the upsert here
+            try {
+                console.log("In /vote/multiple/");
+                console.log(req.body);
+
+                if (!req.body) {
+                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    return;
+                }
+
+                var data = req.body.data;
+
+                if (!data) {
+                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    return;
+                }
+
+                console.log("Before connect");
+                var connection = mysql.createConnection({
+                    host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
+                    user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+                    password : process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+                    port     : process.env.OPENSHIFT_MYSQL_DB_PORT,
+                    database : 'bloodbrothers'
+                });
+
+                connection.connect();
+
+                for (var i = 0; i < data.length; i++) {
+                    var tmp = data[i];
+                    var k = i; //closure
+                    var voter = tmp.voter,
+                        familiar = tmp.familiar,
+                        score = tmp.score;
+
+                    if (!voter || !familiar || !score) {
+                        res.json('{"result": "error", "reason": "Invalid parameters"}');
+                        return;
+                    }
+
+                    var query = "INSERT INTO votes(voter, score, familiar) values(?, ?, ?) " +
+                            "ON DUPLICATE KEY UPDATE voter = VALUES(voter), score = VALUES(score), familiar = VALUES(familiar)";
+                    connection.query(query, [voter, score, familiar], function(err, rows, fields) {
+                        if (err) throw err;
+
+                        if (k === data.length - 1) {
+                            res.json('{"result": "success"}');
+                        }
+                    });
+                }
 
                 connection.end();
             }
