@@ -5,9 +5,9 @@ var mysql   = require('mysql');
 var cors    = require('cors');
 
 /**
- *  Define the sample application.
+ *  BB Wikia Voter app
  */
-var SampleApp = function() {
+var BBWikiVoter = function() {
 
     //  Scope.
     var self = this;
@@ -58,7 +58,7 @@ var SampleApp = function() {
      */
     self.terminator = function(sig){
         if (typeof sig === "string") {
-           console.log('%s: Received %s - terminating sample app ...',
+           console.log('%s: Received %s - terminating app ...',
                        Date(Date.now()), sig);
            process.exit(1);
         }
@@ -89,11 +89,6 @@ var SampleApp = function() {
      */
     self.createRoutes = function() {
         self.routes = { };
-
-        // self.routes['/asciimo'] = function(req, res) {
-        //     var link = "http://i.imgur.com/kmbjB.png";
-        //     res.send("<html><body><img src='" + link + "'></body></html>");
-        // };
 
         // self.routes['/'] = function(req, res) {
         //     res.setHeader('Content-Type', 'text/html');
@@ -260,7 +255,7 @@ var SampleApp = function() {
     };
 
     /**
-     *  Initializes the sample application.
+     *  Initializes the application.
      */
     self.initialize = function() {
         self.setupVariables();
@@ -272,7 +267,7 @@ var SampleApp = function() {
     };
 
     /**
-     *  Start the server (starts up the sample application).
+     *  Start the server
      */
     self.start = function() {
         //  Start the app on the specific interface (and port).
@@ -282,11 +277,11 @@ var SampleApp = function() {
         });
     };
 
-};   /*  Sample Application.  */
+};
 
 /**
  *  main():  Main code.
  */
-var zapp = new SampleApp();
+var zapp = new BBWikiVoter();
 zapp.initialize();
 zapp.start();

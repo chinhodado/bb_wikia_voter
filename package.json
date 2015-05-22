@@ -1,22 +1,17 @@
 {
-  "name": "OpenShift-Sample-App",
+  "name": "BB_Wikia_Voter",
   "version": "1.0.0",
-  "description": "OpenShift Sample Application",
-  "keywords": [
-    "OpenShift",
-    "Node.js",
-    "application",
-    "openshift"
-  ],
+  "description": "Voting service for Blood Brothers Wikia",
+  "keywords": [],
   "author": {
-    "name": "OpenShift",
-    "email": "ramr@example.org",
-    "url": "http://www.openshift.com/"
+    "name": "chinhodado",
+    "email": "chin.bimbo@gmail.com",
+    "url": "https://github.com/chinhodado"
   },
-  "homepage": "http://www.openshift.com/",
+  "homepage": "https://github.com/chinhodado",
   "repository": {
     "type": "git",
-    "url": "https://github.com/openshift/origin-server"
+    "url": "https://github.com/chinhodado/bb_wikia_voter"
   },
   "engines": {
     "node": ">= 0.6.0",
