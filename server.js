@@ -126,11 +126,8 @@ var SampleApp = function() {
         self.app.post('/vote/', cors(), function (req, res, next) {
             // do the upsert here
             try {
-                console.log("In /vote/");
-                console.log(req.body);
-
                 if (!req.body) {
-                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    res.status(400).json({"result": "error", "reason": "Invalid request"});
                     return;
                 }
 
@@ -139,11 +136,10 @@ var SampleApp = function() {
                 score = req.body.score;
 
                 if (!voter || !familiar || !score) {
-                    res.json('{"result": "error", "reason": "Invalid parameters"}');
+                    res.status(400).json({"result": "error", "reason": "Invalid parameters"});
                     return;
                 }
 
-                console.log("Before connect");
                 var connection = mysql.createConnection({
                     host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
                     user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
@@ -154,18 +150,17 @@ var SampleApp = function() {
 
                 connection.connect();
 
-                console.log("Before query");
                 var query = "INSERT INTO votes(voter, score, familiar) values(?, ?, ?) " +
                         "ON DUPLICATE KEY UPDATE voter = VALUES(voter), score = VALUES(score), familiar = VALUES(familiar)";
                 connection.query(query, [voter, score, familiar], function(err, rows, fields) {
                     if (err) throw err;
-                    res.json('{"result": "success"}');
+                    res.json({"result": "success"});
                 });
 
                 connection.end();
             }
             catch (err) {
-                res.json('{"result": "error"}');
+                res.status(500).json({"result": "error"});
                 throw err;
             }
         });
@@ -173,22 +168,18 @@ var SampleApp = function() {
         self.app.post('/vote/multiple/', cors(), function (req, res, next) {
             // do the upsert here
             try {
-                console.log("In /vote/multiple/");
-                console.log(req.body);
-
                 if (!req.body) {
-                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    res.status(400).json({"result": "error", "reason": "Invalid request"});
                     return;
                 }
 
                 var data = req.body.data;
 
                 if (!data) {
-                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    res.status(400).json({"result": "error", "reason": "Invalid request"});
                     return;
                 }
 
-                console.log("Before connect");
                 var connection = mysql.createConnection({
                     host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
                     user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
@@ -207,7 +198,7 @@ var SampleApp = function() {
                         score = tmp.score;
 
                     if (!voter || !familiar || !score) {
-                        res.json('{"result": "error", "reason": "Invalid parameters"}');
+                        res.status(400).json({"result": "error", "reason": "Invalid parameters"});
                         return;
                     }
 
@@ -217,7 +208,7 @@ var SampleApp = function() {
                         if (err) throw err;
 
                         if (k === data.length - 1) {
-                            res.json('{"result": "success"}');
+                            res.json({"result": "success"});
                         }
                     });
                 }
@@ -225,19 +216,15 @@ var SampleApp = function() {
                 connection.end();
             }
             catch (err) {
-                res.json('{"result": "error"}');
+                res.status(500).json({"result": "error"});
                 throw err;
             }
         });
 
         self.app.post('/getVote/all/', cors(), function (req, res, next) {
-            // do the upsert here
             try {
-                console.log("In /getVote/all/");
-                console.log(req.body);
-
                 if (!req.body) {
-                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    res.status(400).json({"result": "error", "reason": "Invalid request"});
                     return;
                 }
 
@@ -266,7 +253,7 @@ var SampleApp = function() {
                 connection.end();
             }
             catch (err) {
-                res.json('{"result": "error"}');
+                res.status(500).json({"result": "error"});
                 throw err;
             }
         });
