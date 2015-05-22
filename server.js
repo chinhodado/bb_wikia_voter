@@ -229,6 +229,47 @@ var SampleApp = function() {
                 throw err;
             }
         });
+
+        self.app.post('/getVote/all/', cors(), function (req, res, next) {
+            // do the upsert here
+            try {
+                console.log("In /getVote/all/");
+                console.log(req.body);
+
+                if (!req.body) {
+                    res.json('{"result": "error", "reason": "Invalid request"}');
+                    return;
+                }
+
+                var voter = req.body.voter;
+
+                var connection = mysql.createConnection({
+                    host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
+                    user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+                    password : process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+                    port     : process.env.OPENSHIFT_MYSQL_DB_PORT,
+                    database : 'bloodbrothers'
+                });
+
+                connection.connect();
+
+                var query = "select voter, t1.familiar, score, avg from (select familiar, avg(score) as avg from votes group by familiar) t1 " +
+                    "left join (select voter, familiar, score from votes where voter = ?) t2 on t1.familiar = t2.familiar";
+                connection.query(query, [voter], function(err, rows, fields) {
+                    if (err) throw err;
+                    res.json({
+                        "result": "success",
+                        "data": rows
+                    });
+                });
+
+                connection.end();
+            }
+            catch (err) {
+                res.json('{"result": "error"}');
+                throw err;
+            }
+        });
     };
 
     /**
