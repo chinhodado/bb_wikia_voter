@@ -255,7 +255,7 @@ var BBWikiVoter = function() {
             }
         });
 
-        self.app.post('/getTier/', cors(), function (req, res, next) {
+        self.app.get('/getTier/', cors(), function (req, res, next) {
             request('http://bloodbrothersgame.wikia.com/index.php?action=render&title=Familiar_Tier_List/PvP', function (error, response, body) {
                 if (!error && response.statusCode == 200) {
                     console.log('Request succeeded.')
