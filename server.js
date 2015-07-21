@@ -3,6 +3,8 @@ var express = require('express');
 var fs      = require('fs');
 var mysql   = require('mysql');
 var cors    = require('cors');
+var request = require('request');
+var cheerio = require('cheerio');
 
 /**
  *  BB Wikia Voter app
@@ -251,6 +253,30 @@ var BBWikiVoter = function() {
                 res.status(500).json({"result": "error"});
                 throw err;
             }
+        });
+
+        self.app.post('/getTier/', cors(), function (req, res, next) {
+            request('http://bloodbrothersgame.wikia.com/index.php?action=render&title=Familiar_Tier_List/PvP', function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    console.log('Request succeeded.')
+                    var $ = cheerio.load(body);
+
+                    var dict = {};
+
+                    $('.wikitable').each(function(i, elem) {
+                        var tier = $(elem).attr('id').substr(5).replace(".2B", "+");
+                        dict[tier] = [];
+                        var rows = $(this).find('tr');
+                        rows.each(function(j, row) {
+                            if ($(row).find('td').length !== 0) {
+                                var name = $($(row).find('td').get(2)).text().trim();
+                                dict[tier].push(name);
+                            }
+                        });
+                    });
+                    res.json(dict);
+                }
+            });
         });
     };
 
