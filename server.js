@@ -281,6 +281,26 @@ var BBWikiVoter = function() {
                 }
             });
         });
+
+        self.app.get('/getDxr/', cors(), function (req, res, next) {
+            var fileName = req.query.file;
+            var link = "https://dxr.mozilla.org/mozilla-central/search?q=path%3A" + fileName + "&redirect=false&case=false";
+            var options = {
+                url: link,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            request(options, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    console.log('Request succeeded.');
+                    res.json(body);
+                }
+                else {
+                    console.log(response.statusCode);
+                }
+            });
+        });
     };
 
     /**
